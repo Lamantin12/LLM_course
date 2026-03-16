@@ -171,3 +171,8 @@ cython_debug/
 .pypirc
 
 .DS_Store
+
+*.png
+
+# Claude project file
+CLAUDE.md
