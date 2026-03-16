@@ -10,22 +10,10 @@ A hands-on course for building applications with Large Language Models using Lan
 
 ## Setup
 
-1. **Install dependencies**
+**Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
-
-2. **Get your course API key**
-   - Go to the [course Telegram bot](https://t.me/llm_course_bot)
-   - Authenticate with your Stepik ID
-   - Receive your API key (also shows remaining tokens and expiry date)
-   - Store it securely; never commit it to git
-
-3. **How the course API works**
-   - The course uses a proxy server at `https://api.neuraldeep.tech/` instead of OpenAI's API
-   - This means you can follow the course without a paid OpenAI account
-   - The wrapper classes in `utils.py` (`NDTOpenAI`, `ChatOpenAI`, `OpenAIEmbeddings`) are drop-in replacements for the standard OpenAI/LangChain equivalents
-   - Students can also use their own OpenAI key (see notebooks for commented-out alternatives)
 
 ## Quick Start
 
