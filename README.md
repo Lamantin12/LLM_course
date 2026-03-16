@@ -1,0 +1,115 @@
+# LLM Practical Course
+
+A hands-on course for building applications with Large Language Models using LangChain and the OpenAI API.
+
+## Prerequisites
+
+- Python 3.10+
+- `pip` or another package manager
+- A course API key (provided during enrollment)
+
+## Setup
+
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Get your course API key**
+   - Request it from course organizers (check course materials)
+   - Store it securely; never commit it to git
+
+3. **How the course API works**
+   - The course uses a proxy server at `https://api.neuraldeep.tech/` instead of OpenAI's API
+   - This means you can follow the course without a paid OpenAI account
+   - The wrapper classes in `utils.py` (`NDTOpenAI`, `ChatOpenAI`, `OpenAIEmbeddings`) are drop-in replacements for the standard OpenAI/LangChain equivalents
+   - Students can also use their own OpenAI key (see notebooks for commented-out alternatives)
+
+## Quick Start
+
+```python
+from utils import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="gpt-3.5-turbo",
+    api_key="your-course-key",
+    temperature=0.7
+)
+
+response = llm.invoke("What is the capital of France?")
+print(response.content)
+```
+
+## Modules
+
+| Module | Topic | Key Libraries | Notebooks |
+|--------|-------|---------------|-----------|
+| **1** | API Setup & Model Access | `openai`, `langchain_openai`, `transformers` | `M1_Welcome.ipynb` |
+| **2** | Prompt Engineering | `langchain.prompts`, `langchain.output_parsers` | `M2_1_*`, `M2_2_*` |
+| **3** | LangChain Framework | `langchain.chains`, `langchain.agents`, `langchain.memory` | `M3_*` |
+| **4** | Retrieval-Augmented Generation (RAG) | `langchain.document_loaders`, `langchain.vectorstores` | `M4_RAG.ipynb` |
+
+## Directory Structure
+
+```
+LLM/
+├── README.md                                    # This file
+├── CLAUDE.md                                    # Project metadata
+├── requirements.txt                             # Dependencies
+├── utils.py                                     # Course API wrappers
+│
+├── module1_setup/
+│   ├── README.md
+│   └── M1_Welcome.ipynb
+│
+├── module2_prompt_engineering/
+│   ├── README.md
+│   ├── M2_1_Prompt_Engineering_intro.ipynb
+│   ├── M2_2_LangChain_Prompting.ipynb
+│   └── (solution notebooks and submissions)
+│
+├── module3_langchain/
+│   ├── README.md
+│   ├── M3_LangChain_Chains.ipynb
+│   ├── M3_LangChain_Agents_intro.ipynb
+│   ├── M3_LangChain_Memory.ipynb
+│   └── (solution notebooks and submissions)
+│
+├── module4_rag/
+│   ├── README.md
+│   └── M4_RAG.ipynb
+│
+└── submissions/
+    └── (CSV results from exercises)
+```
+
+## Course API Reference
+
+### Available Models
+- `gpt-3.5-turbo` — fast, general-purpose model
+- `gpt-4` — more capable, reasoning-heavy tasks (if available via your course)
+
+### Key Parameters
+- `temperature` (0.0–2.0): Controls randomness. 0.0 = deterministic, 1.0+ = creative
+- `max_tokens`: Maximum tokens in the completion
+- `top_p`: Nucleus sampling; use with temperature
+- `n`: Number of completions to generate
+
+## Learning Path
+
+1. **Module 1** → Understand how to call an LLM and the difference between parametric (model weights) and source knowledge (injected context)
+2. **Module 2** → Master prompting techniques: structure, temperature, few-shot examples, and output parsing
+3. **Module 3** → Build applications: chains (sequential logic), agents (tool use), and memory (conversation context)
+4. **Module 4** → Extend the model with external knowledge: load documents, chunk them, embed them, search them, and feed results into the LLM
+
+## Resources
+
+- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
+- [LangChain Documentation](https://python.langchain.com/)
+- [HuggingFace Models](https://huggingface.co/models)
+
+## Notes
+
+- All notebooks are compatible with Google Colab and local Jupyter
+- Notebooks are in Russian; code is in English
+- Solutions to exercises are provided in separate `*_solution.ipynb` notebooks
