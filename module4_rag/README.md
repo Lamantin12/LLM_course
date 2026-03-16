@@ -103,7 +103,7 @@ Convert text to dense vectors for similarity search.
 ```python
 from utils import OpenAIEmbeddings  # Course proxy
 
-embeddings = OpenAIEmbeddings(api_key="your-course-key")
+embeddings = OpenAIEmbeddings(course_api_key=course_api_key)
 
 # Embed a single text
 vector = embeddings.embed_query("What is photosynthesis?")
@@ -140,7 +140,7 @@ Persist embeddings and index them for fast retrieval.
 from langchain_community.vectorstores import FAISS, Chroma
 from utils import OpenAIEmbeddings
 
-embeddings = OpenAIEmbeddings(api_key="your-key")
+embeddings = OpenAIEmbeddings(course_api_key=course_api_key)
 
 # Create and populate a vector store
 vectorstore = FAISS.from_documents(
@@ -261,7 +261,7 @@ from utils import ChatOpenAI, OpenAIEmbeddings
 # Load, split, embed, store
 docs = TextLoader("data.txt").load()
 chunks = RecursiveCharacterTextSplitter().split_documents(docs)
-vectorstore = FAISS.from_documents(chunks, OpenAIEmbeddings(api_key="..."))
+vectorstore = FAISS.from_documents(chunks, OpenAIEmbeddings(course_api_key="..."))
 
 # Query
 prompt = PromptTemplate.from_template("Answer based on:\n{context}\n\nQ: {question}\nA:")

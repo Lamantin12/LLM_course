@@ -45,13 +45,15 @@ Sentiment:
 `temperature` controls how "creative" vs. "deterministic" the model is.
 
 ```python
-llm_factual = ChatOpenAI(temperature=0.0)
-response = llm_factual.invoke("What is the capital of France?")
-# Output: "Paris" (always the same)
+from utils import ChatOpenAI
 
-llm_creative = ChatOpenAI(temperature=1.0)
-response = llm_creative.invoke("Write a haiku about AI")
-# Output: varies each time; may be poetic or odd
+llm_factual = ChatOpenAI(temperature=0.0, course_api_key=course_api_key)
+response = llm_factual.invoke("Привет, как дела?")
+# Output: always the same deterministic response
+
+llm_creative = ChatOpenAI(temperature=1.0, course_api_key=course_api_key)
+response = llm_creative.invoke("Привет, как дела?")
+# Output: varies each time; more creative and diverse
 ```
 
 ### When to Use Which
@@ -70,11 +72,9 @@ import tiktoken
 encoder = tiktoken.get_encoding("p50k_base")
 tokens = encoder.encode("What is the capital of France?")
 print(len(tokens))  # ~8 tokens
-
-# Estimate cost: gpt-3.5-turbo is ~$0.0005 per 1K input tokens
-cost = len(tokens) / 1000 * 0.0005
-print(f"Cost: ${cost:.6f}")
 ```
+
+**Cost estimation** (from the notebook): a prompt + response of ~1000 tokens costs roughly `$0.002`. So 10 users making 100 requests each would burn through `$2`, while only using ~1/3 of the context window. Plan your service's economics accordingly.
 
 ## LangChain Prompting
 
@@ -85,16 +85,23 @@ Instead of f-strings, use `PromptTemplate` for production code:
 ```python
 from langchain import PromptTemplate
 
-template = """You are a {style} writer.
-Write about: {topic}"""
+template = """Ответь на вопрос, опираясь на контекст ниже.
+Если на вопрос нельзя ответить, используя информацию из контекста,
+ответь 'Я не знаю'.
 
-prompt = PromptTemplate(
-    input_variables=["style", "topic"],
-    template=template
+Context: {context}
+
+Question: {query}
+
+Answer: """
+
+prompt = PromptTemplate(input_variables=["context", "query"], template=template)
+
+formatted = prompt.format(
+    context="В России лидером онлайн курсов является Stepik.",
+    query="Какая платформа популярна в России?"
 )
-
-formatted = prompt.format(style="professional", topic="machine learning")
-print(formatted)
+print(llm.invoke(formatted).content)  # → "Stepik"
 ```
 
 **Why?** Templates are reusable, testable, and safer than string formatting.
@@ -104,15 +111,23 @@ print(formatted)
 For chat-based models, use `ChatPromptTemplate` to generate `HumanMessage` and `AIMessage` objects:
 
 ```python
-from langchain import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate
 
-prompt = ChatPromptTemplate.from_template(
-    "You are a helpful assistant.\nUser: {user_input}\nAssistant:"
-)
+template = """Ответь на вопрос, опираясь на контекст ниже.
 
-messages = prompt.format_messages(user_input="How are you?")
-response = llm.invoke(messages)
+Context: {context}
+
+Question: {query}
+
+Answer: """
+
+prompt = ChatPromptTemplate.from_template(template)
+messages = prompt.format_messages(context="Ламы водятся в Перу.", query="Где водятся ламы?")
+# Returns a list of HumanMessage objects
+print(llm.invoke(messages).content)  # → "В Перу."
 ```
+
+Key difference from `PromptTemplate`: `ChatPromptTemplate` returns `HumanMessage`/`AIMessage` objects (chat-mode), while `PromptTemplate` returns raw strings.
 
 ### FewShotPromptTemplate (Teaching by Example)
 
@@ -121,28 +136,31 @@ Teach the model by showing worked examples:
 ```python
 from langchain import FewShotPromptTemplate, PromptTemplate
 
+# Sarcastic chatbot example from the notebook
 examples = [
-    {"input": "2 + 2", "output": "4"},
-    {"input": "5 * 3", "output": "15"},
+    {"query": "Как дела?", "answer": "Не могу пожаловаться, но иногда всё-таки жалуюсь."},
+    {"query": "Сколько время?", "answer": "Самое время купить часы."},
 ]
 
 example_prompt = PromptTemplate(
-    input_variables=["input", "output"],
-    template="Q: {input}\nA: {output}"
+    input_variables=["query", "answer"],
+    template="User: {query}\nAI: {answer}\n"
 )
 
 few_shot = FewShotPromptTemplate(
     examples=examples,
     example_prompt=example_prompt,
-    prefix="Solve the math problem:",
-    suffix="Q: {input}\nA:",
-    input_variables=["input"]
+    prefix="Это разговор с ИИ-помощником. Помощник саркастичен и остроумен.\nВот несколько примеров:",
+    suffix="\nUser: {query}\nAI: ",
+    input_variables=["query"],
+    example_separator="\n\n"
 )
 
-prompt_str = few_shot.format(input="10 / 2")
-response = llm.invoke(prompt_str)
-# Model is more likely to answer "5" because it saw the pattern
+print(llm.invoke(few_shot.format(query="Почему падает снег?")).content)
+# → "Потому что небо не умеет держать себя в руках."
 ```
+
+**Why few-shot works**: Without examples, asking `A + A = ?` gives `2A` (mathematical). With examples like `A + A = AA`, `B + С = BC`, the model switches to concatenation and answers `1 + 1 = 11`. The examples steer the model's interpretation.
 
 ### LengthBasedExampleSelector (Dynamic Few-Shot)
 
@@ -174,31 +192,33 @@ Extract structured data (dicts, JSON) from LLM responses:
 
 ```python
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-from langchain import PromptTemplate
+from langchain.prompts import ChatPromptTemplate
 
+# Define the fields we want extracted
 schemas = [
-    ResponseSchema(name="sentiment", description="positive, negative, or neutral"),
-    ResponseSchema(name="confidence", description="0–1"),
+    ResponseSchema(name="gift", description="Был ли товар куплен в подарок? True/False"),
+    ResponseSchema(name="delivery_days", description="Сколько дней доставка? -1 если неизвестно"),
+    ResponseSchema(name="price_value", description="Оценка стоимости товара"),
 ]
 
 parser = StructuredOutputParser.from_response_schemas(schemas)
 format_instructions = parser.get_format_instructions()
 
-prompt = PromptTemplate(
-    template="Analyze sentiment:\n{format_instructions}\n\nReview: {review}",
-    input_variables=["review"],
-    partial_variables={"format_instructions": format_instructions}
-)
+template = """Из следующего текста извлеки информацию:
+text: {text}
+{format_instructions}"""
 
-text = "This product is amazing!"
-prompt_str = prompt.format(review=text)
-response = llm.invoke(prompt_str)
+prompt = ChatPromptTemplate.from_template(template)
+messages = prompt.format_messages(text=customer_review, format_instructions=format_instructions)
+response = llm.invoke(messages)
 
-parsed = parser.parse(response.content)
-print(parsed)  # {"sentiment": "positive", "confidence": 0.95}
+# LLM returns a string, but the parser converts it to a dict
+output_dict = parser.parse(response.content)
+print(type(output_dict))      # <class 'dict'>
+print(output_dict.get("gift")) # "True"
 ```
 
-The parser **injects instructions** into the prompt telling the model to emit JSON, then **parses the JSON** back into a Python dict.
+**How it works**: `get_format_instructions()` generates a markdown JSON schema that's injected into the prompt, telling the model to emit a specific JSON format. The parser then extracts the JSON and returns a Python `dict`.
 
 ## Notebooks in This Module
 

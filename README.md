@@ -16,7 +16,9 @@ A hands-on course for building applications with Large Language Models using Lan
    ```
 
 2. **Get your course API key**
-   - Request it from course organizers (check course materials)
+   - Go to the [course Telegram bot](https://t.me/llm_course_bot)
+   - Authenticate with your Stepik ID
+   - Receive your API key (also shows remaining tokens and expiry date)
    - Store it securely; never commit it to git
 
 3. **How the course API works**
@@ -31,9 +33,8 @@ A hands-on course for building applications with Large Language Models using Lan
 from utils import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-3.5-turbo",
-    api_key="your-course-key",
-    temperature=0.7
+    temperature=0.7,
+    course_api_key="your-course-key"
 )
 
 response = llm.invoke("What is the capital of France?")
@@ -92,7 +93,7 @@ LLM/
 ### Key Parameters
 - `temperature` (0.0–2.0): Controls randomness. 0.0 = deterministic, 1.0+ = creative
 - `max_tokens`: Maximum tokens in the completion
-- `top_p`: Nucleus sampling; use with temperature
+- `top_p`: Nucleus sampling; use **either** `temperature` **or** `top_p`, not both simultaneously
 - `n`: Number of completions to generate
 
 ## Learning Path

@@ -18,13 +18,10 @@ Learn how to call Large Language Models through three different interfaces: the 
 response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "What is 2+2?"},
+        {"role": "user", "content": "1+1"},
     ],
-    temperature=0.7,
+    temperature=0,
     max_tokens=100,
-    top_p=0.9,
-    n=1
 )
 ```
 
@@ -34,16 +31,18 @@ response.choices[0].message.content       # The generated text
 response.usage.prompt_tokens              # Tokens in the input
 response.usage.completion_tokens          # Tokens in the output
 response.usage.total_tokens               # Sum
-response.finish_reason                    # "stop" (normal) or "length" (cut off)
+response.choices[0].finish_reason         # "stop" (normal) or "length" (cut off)
 ```
+
+The course proxy also returns `available_tokens` — how many tokens you have left on your course key.
 
 ### Key Parameters
 | Parameter | Range | Meaning |
 |-----------|-------|---------|
-| `temperature` | 0.0–2.0 | 0 = deterministic; higher = more random |
-| `max_tokens` | 1–context | Limit output length |
-| `top_p` | 0.0–1.0 | Nucleus sampling; usually 0.9 |
-| `n` | ≥1 | Number of completions to generate |
+| `temperature` | 0.0–2.0 | 0 = deterministic; higher = more random (default 1) |
+| `max_tokens` | 1–context | Limit output length (default 256) |
+| `top_p` | 0.0–1.0 | Nucleus sampling — use **either** `temperature` or `top_p`, not both |
+| `n` | ≥1 | Number of completions to generate (default 1) |
 
 ## Three Ways to Call a Model
 
@@ -62,43 +61,51 @@ print(response.choices[0].message.content)
 ### 2. LangChain ChatOpenAI (Recommended)
 ```python
 from utils import ChatOpenAI
+from langchain.prompts import PromptTemplate
 
-llm = ChatOpenAI(
-    model="gpt-3.5-turbo",
-    api_key="your-course-key",
-    temperature=0.7
-)
+llm = ChatOpenAI(temperature=0.0, course_api_key=course_api_key)
 
-response = llm.invoke("What is Python?")
-print(response.content)
+template = """Вопрос: {question}
+Ответ: Дай короткий ответ"""
+
+prompt = PromptTemplate(template=template, input_variables=["question"])
+chain = prompt | llm  # LCEL pipe syntax
+
+print(chain.invoke("Когда человек первый раз полетел в космос?").content)
 ```
 
 ### 3. Open-Source Model (Remote via HuggingFace)
 ```python
+import os
+from getpass import getpass
 from langchain_huggingface import HuggingFaceEndpoint
 
-llm = HuggingFaceEndpoint(
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = getpass("HuggingFace API key: ")
+
+hf_llm = HuggingFaceEndpoint(
     repo_id="microsoft/Phi-3-mini-4k-instruct",
-    huggingfacehub_api_token="your-hf-token"
 )
 
-response = llm.invoke("What is AI?")
-print(response)
+print(hf_llm.invoke("When did man first fly into space?"))
 ```
+
+> Free HuggingFace API has a 250-token context window limit.
 
 ### 4. Open-Source Model (Local, No Internet)
 ```python
 from langchain.llms import HuggingFacePipeline
 
-llm = HuggingFacePipeline.from_model_id(
+bloom = HuggingFacePipeline.from_model_id(
     model_id="bigscience/bloom-1b7",
     task="text-generation",
-    model_kwargs={"temperature": 0.7, "max_new_tokens": 50}
+    model_kwargs={"temperature": 1, "max_length": 64},
+    # device=0,  # Uncomment if you have a GPU
 )
 
-response = llm.invoke("What is coding?")
-print(response)
+print(bloom.invoke("When did man first fly into space?"))
 ```
+
+> Small models (like Bloom 1B) give low-quality answers — the notebook shows it doesn't even know about Gagarin! Use for learning, not production.
 
 ## Parametric vs. Source Knowledge
 
@@ -122,7 +129,7 @@ print(response)
 ## Key Concepts
 
 - **Tokens**: Units of text the model processes. ~4 characters ≈ 1 token.
-- **Context Window**: The maximum number of tokens the model can process in one request (e.g., 4K, 16K, 128K).
+- **Context Window**: The maximum number of tokens the model can process in one request (e.g., ~4097 for `gpt-3.5-turbo`).
 - **Finish Reason**: `stop` = normal completion; `length` = output was cut off (increase `max_tokens`).
 - **Temperature Trade-off**: Low temperature (0.0) for facts; high (1.0+) for creativity.
 

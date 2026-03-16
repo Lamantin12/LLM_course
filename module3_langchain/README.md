@@ -17,15 +17,22 @@ Build sophisticated LLM applications by composing chains (sequential logic), age
 Connect a prompt + LLM into a single pipeline:
 
 ```python
-from langchain import PromptTemplate, LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 from utils import ChatOpenAI
 
-prompt = PromptTemplate(template="What is {topic}?", input_variables=["topic"])
-llm = ChatOpenAI()
-chain = LLMChain(prompt=prompt, llm=llm)
+llm = ChatOpenAI(temperature=0.0, course_api_key=course_api_key)
 
-result = chain.invoke({"topic": "machine learning"})
-print(result["text"])
+template = '''Перепиши текcт в заданном стиле.
+Текст:{output_text}
+Стиль: {style}.
+Результат:'''
+
+prompt = PromptTemplate(input_variables=['output_text', 'style'], template=template)
+chain = LLMChain(llm=llm, prompt=prompt, output_key='final_output')
+
+result = chain.invoke({'output_text': text, 'style': 'Rap'})
+print(result['final_output'])
 ```
 
 ### LCEL (Modern Syntax)
@@ -33,41 +40,51 @@ print(result["text"])
 LCEL is cleaner, more composable, and handles streaming natively:
 
 ```python
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from utils import ChatOpenAI
 
-prompt = PromptTemplate(template="What is {topic}?", input_variables=["topic"])
-llm = ChatOpenAI()
-parser = StrOutputParser()
+llm = ChatOpenAI(temperature=0.0, course_api_key=course_api_key)
 
-chain = prompt | llm | parser
+template = '''Перепиши этот текcт в заданном стиле: {output_text}
+Стиль: {style}.
+Результат:'''
 
-result = chain.invoke({"topic": "machine learning"})
-print(result)
+prompt = PromptTemplate(input_variables=['output_text', 'style'], template=template)
+
+chain = prompt | llm  # That's it!
+
+# With parser for string output:
+chain_with_parser = prompt | llm | StrOutputParser()
 ```
 
-**Benefit**: One-line chain definition vs. 10+ lines of setup code.
+**Benefit**: One-line chain definition vs. 10+ lines of setup code. The notebook literally says "И ВСЁ!" (And that's it!)
 
 ### TransformChain (Pure Python Functions)
 
 Insert Python logic into a chain:
 
 ```python
+import re
 from langchain.chains import TransformChain
 
-def clean_text(text):
-    return {"output": text.lower().strip()}
+def del_spaces(inputs: dict) -> dict:
+    text = inputs["text"]
+    text = re.sub(r'(\r\n|\r|\n){2,}', r'\n', text)
+    text = re.sub(r'[ \t]+', ' ', text)
+    return {"output_text": text}
 
-transform = TransformChain(
-    input_variables=["input"],
-    output_variables=["output"],
-    transform=clean_text
+text_clean_chain = TransformChain(
+    input_variables=["text"],
+    output_variables=["output_text"],
+    transform=del_spaces
 )
 
-result = transform.invoke({"input": "  HELLO WORLD  "})
-print(result["output"])  # "hello world"
+result = text_clean_chain.invoke(dirty_text)
+print(result['output_text'])  # Cleaned text with no extra spaces/newlines
 ```
+
+Note: `TransformChain` has no LLM — it's pure Python. This saves tokens by cleaning input before sending to the model.
 
 ### SequentialChain (Multiple Steps)
 
@@ -179,59 +196,72 @@ tools = [
 ### Built-in Tools
 
 ```python
-from langchain.agents import load_tools
-from langchain_experimental.tools import PythonREPLTool
+from langchain.agents import load_tools, Tool
+from langchain.tools import DuckDuckGoSearchRun
+from langchain_experimental.tools.python.tool import PythonREPLTool
 
-# Search tools
-tools = load_tools(["wikipedia", "arxiv", "ddg-search"], llm=llm)
+# Tools supported out-of-the-box by load_tools
+tools = load_tools(["arxiv", "wikipedia"], llm=llm)
 
-# Code execution
+# DuckDuckGo search
+search = DuckDuckGoSearchRun()
+tools.append(Tool(name="Search", func=search.run,
+                  description="useful for current events"))
+
+# Code execution (writes and runs Python)
 python_repl = PythonREPLTool()
 
-# Math chains
+# Math via LLMMathChain (DEPRECATED — use agents instead)
 from langchain.chains import LLMMathChain
-math_chain = LLMMathChain.from_llm(llm)
+math_chain = LLMMathChain.from_llm(llm=llm)
+math_tool = Tool(name='Calculator', func=math_chain.run,
+                 description='Может производить математические расчёты.')
 ```
+
+> **Utility Chains (e.g. `LLMMathChain`) are deprecated** — the notebook explicitly says "БОЛЬШЕ НЕ ПОДДЕРЖИВАЮТСЯ ФРЭЙМВОРКОМ — их заменили агенты". Use agents with tools instead.
 
 ### Initializing an Agent
 
 ```python
-from langchain.agents import initialize_agent, AgentType
+from langchain.agents import initialize_agent
 
 agent = initialize_agent(
     tools=tools,
     llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
     max_iterations=3,
     handle_parsing_errors=True
 )
 
-result = agent.run("What is the current population of France?")
+result = agent("Сколько будет (4.5*2.1)+2.2?")
+print(result['output'])  # 11.65 (uses the calculator tool)
 ```
 
 **Parameters**:
-- `verbose=True`: Print reasoning steps
+- `verbose=True`: Print reasoning steps (see the ReAct thought/action/observation loop)
 - `max_iterations`: Prevent infinite loops
 - `handle_parsing_errors=True`: Gracefully handle LLM parsing failures
+
+> Note: `initialize_agent` is marked as deprecated in recent LangChain — use `create_react_agent` for new code. The notebook still uses `initialize_agent`.
 
 ### When LLMs Fail
 
 LLMs struggle with tasks that require exact computation or current information:
 
 ```python
-# ❌ This will fail
-llm.invoke("How many letters in 'photosynthesis'?")
-# → Might say 15 (wrong; it's 14) because of tokenisation issues
+# ❌ LLM gets this wrong due to tokenisation
+llm.invoke("Сколько букв в слове зачёт?")
+# → "6 букв" (wrong; it's 5) because of how tokens ≠ letters
 
-# ✅ Use an agent with a tool
+# ✅ Use an agent with a custom tool
 @tool
-def count_letters(word: str) -> int:
-    """Count letters in a word."""
+def get_word_length(word: str) -> int:
+    """Возвращает длину слова"""
     return len(word)
 
-agent.run("How many letters in 'photosynthesis'?")
-# → 14 (correct; used the tool)
+agent = initialize_agent(tools=[get_word_length], llm=llm, verbose=True)
+agent("Сколько букв в слове зачёт?")
+# → 5 (correct; used the tool)
 ```
 
 ## Memory: Conversation Context
@@ -261,10 +291,13 @@ conversation = ConversationChain(
     verbose=True
 )
 
-conversation.run("My name is Alice")
-conversation.run("What is my name?")
-# → "Your name is Alice." (remembered!)
+conversation.invoke("Привет, ChatGPT! Меня зовут Иван. Как дела?")
+conversation.invoke("Сможешь помочь мне в написании кода на Python?")
+conversation.invoke("Как вывести на экран 'Hello, world!' ?")
+# → Answers with Python syntax because it *remembers* the earlier request about Python
 ```
+
+Under the hood, a `ConversationChain` uses a prompt with `{history}` and `{input}` variables. The `memory` automatically populates `{history}` with previous messages.
 
 ### Memory Types
 
@@ -315,10 +348,11 @@ memory = ConversationTokenBufferMemory(
 
 **Summary**
 ```python
-from langchain.memory import ConversationSummaryMemory
+from langchain.chains.conversation.memory import ConversationSummaryMemory
 
 memory = ConversationSummaryMemory(llm=llm)
 # After each exchange, the LLM summarises the history to save space
+# Note: summaries are generated in English regardless of conversation language
 ```
 
 ## Notebooks in This Module
