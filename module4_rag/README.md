@@ -271,11 +271,13 @@ print(chain.invoke({"context": "...", "question": "What is RAG?"}))
 
 ---
 
-## Notebooks in This Module
+## Notebooks & Exercises in This Module
 
-| Notebook | Topics |
-|----------|--------|
+| File | Topics |
+|------|--------|
 | `M4_RAG.ipynb` | Document loaders, text splitters, embeddings, vector stores, retrievers, RAG pipeline |
+| `custom_text_splitter.py` | Custom section-based text splitter — parses numbered headings and extracts content per section |
+| `pushkin_rag.py` | RAG pipeline over "The Captain's Daughter" PDF — answers literature questions using FAISS + OpenAI embeddings |
 
 ---
 

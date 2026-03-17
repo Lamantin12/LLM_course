@@ -66,7 +66,10 @@ LLM/
 │
 ├── module4_rag/
 │   ├── README.md
-│   └── M4_RAG.ipynb
+│   ├── M4_RAG.ipynb
+│   ├── custom_text_splitter.py
+│   ├── pushkin_rag.py
+│   └── pushkin_questions_data/
 │
 └── submissions/
     └── (CSV results from exercises)
