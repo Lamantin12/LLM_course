@@ -177,3 +177,9 @@ cython_debug/
 # Claude project file
 CLAUDE.md
 .claude/
+
+
+data/
+submissions/
+.idea/
+*faiss*
