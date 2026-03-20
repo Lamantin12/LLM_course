@@ -31,23 +31,23 @@ print(response.content)
 
 ## Modules
 
-| Module | Topic | Key Libraries | Notebooks |
-|--------|-------|---------------|-----------|
-| **1** | API Setup & Model Access | `openai`, `langchain_openai`, `transformers` | `M1_Welcome.ipynb` |
-| **2** | Prompt Engineering | `langchain.prompts`, `langchain.output_parsers` | `M2_1_*`, `M2_2_*` |
-| **3** | LangChain Framework | `langchain.chains`, `langchain.agents`, `langchain.memory` | `M3_*` |
-| **4** | Retrieval-Augmented Generation (RAG) | `langchain.document_loaders`, `langchain.vectorstores` | `M4_RAG.ipynb` |
-| **4** | Advanced Prompt Engineering | `langchain_experimental` | `M4_Basic_Advansic_Prompting.ipynb` |
-| **4** | Agents | `langchain.agents`, `langserve` | `M4_Agents.ipynb` |
-| **5** | Open-Source Models (Zoo) | `transformers`, `langchain_community`, `torch`, `bitsandbytes` | `M5_Zoo.ipynb` |
+| Module | Directory | Topic | Key Libraries | Main Notebook(s) |
+|--------|-----------|-------|---------------|-----------------|
+| **1** | [module1_setup/](module1_setup/README.md) | API Setup & Model Access | `openai`, `langchain_openai`, `transformers` | `M1_Welcome.ipynb` |
+| **2** | [module2_prompt_engineering/](module2_prompt_engineering/README.md) | Prompt Engineering | `langchain.prompts`, `langchain.output_parsers` | `M2_1_*`, `M2_2_*` |
+| **3** | [module3_langchain/](module3_langchain/README.md) | LangChain Framework | `langchain.chains`, `langchain.agents`, `langchain.memory` | `M3_*` |
+| **4** | [module4_rag/](module4_rag/README.md) | Retrieval-Augmented Generation | `langchain.document_loaders`, `langchain.vectorstores` | `M4_RAG.ipynb` |
+| **4** | [module4_advanced_prompt_engineering/](module4_advanced_prompt_engineering/README.md) | Advanced Prompt Engineering | `langchain_experimental` | `M4_Advanced_Prompting.ipynb` |
+| **4** | [module4_agents/](module4_agents/README.md) | Agents | `langchain.agents`, `langserve` | `M4_Agents.ipynb` |
+| **5** | [module5_fine_tuning/](module5_fine_tuning/README.md) | Open-Source Models (Zoo) | `transformers`, `langchain_community`, `torch`, `bitsandbytes` | `M5_Zoo.ipynb` |
 
 ## Directory Structure
 
 ```
 LLM/
-├── README.md                                    # This file
-├── CLAUDE.md                                    # Project metadata
-├── requirements.txt                             # Dependencies
+├── README.md
+├── CLAUDE.md
+├── requirements.txt
 ├── utils.py                                     # Course API wrappers
 │
 ├── module1_setup/
@@ -58,14 +58,17 @@ LLM/
 │   ├── README.md
 │   ├── M2_1_Prompt_Engineering_intro.ipynb
 │   ├── M2_2_LangChain_Prompting.ipynb
-│   └── (solution notebooks and submissions)
+│   ├── M2_1_exercises.ipynb
+│   └── M2_2_exercises.ipynb
 │
 ├── module3_langchain/
 │   ├── README.md
 │   ├── M3_LangChain_Chains.ipynb
 │   ├── M3_LangChain_Agents_intro.ipynb
 │   ├── M3_LangChain_Memory.ipynb
-│   └── (solution notebooks and submissions)
+│   ├── M3_1_exercises.ipynb
+│   ├── M3_2_exercises.ipynb
+│   └── M3_3_exercises.ipynb
 │
 ├── module4_rag/
 │   ├── README.md
@@ -76,8 +79,8 @@ LLM/
 │
 ├── module4_advanced_prompt_engineering/
 │   ├── README.md
-│   ├── M4_Basic_Advansic_Prompting.ipynb
-│   ├── задачи_4_3_.ipynb
+│   ├── M4_Advanced_Prompting.ipynb
+│   ├── M4_3_exercises.ipynb
 │   ├── advanced_prompting.py
 │   ├── task_1_sudoku_tot.py
 │   └── task_2_pal_math.py
@@ -85,7 +88,7 @@ LLM/
 ├── module4_agents/
 │   ├── README.md
 │   ├── M4_Agents.ipynb
-│   ├── 4_2_Решение_задач.ipynb
+│   ├── M4_2_exercises.ipynb
 │   ├── langserve_app.py
 │   ├── task_1_gannibal_rag_agent.py
 │   ├── task_2_dvdrental_sql_agent.py
@@ -93,10 +96,11 @@ LLM/
 │   └── gannibal_faiss_index/
 │
 ├── module5_fine_tuning/
-│   └── M5_Zoo.ipynb                             # Open-source model zoo: base/chat/instruct/code models, quantization, MoE, multimodal
+│   ├── README.md
+│   └── M5_Zoo.ipynb
 │
 └── submissions/
-    └── (CSV results from exercises)
+    └── (CSV results from exercises, named m[module-id]_[section]_[exercise]_solution.csv)
 ```
 
 ## Course API Reference

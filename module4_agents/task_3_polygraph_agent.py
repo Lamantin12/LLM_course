@@ -108,7 +108,7 @@ def main():
     results = answer_questions(agent_executor)
 
     SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = SUBMISSIONS_DIR / "4.2.10_solution.csv"
+    output_path = SUBMISSIONS_DIR / "m4agents_2_10_solution.csv"
     results.to_csv(output_path, index=False)
     print(f"\nSaved {len(results)} answers to {output_path}")
 

@@ -17,7 +17,7 @@ DATA_DIR = Path(__file__).resolve().parent / "pushkin_questions_data"
 PDF_PATH = DATA_DIR / "The_Daughter_of_The_Commandant.pdf"
 CSV_PATH = DATA_DIR / "pushkin_questions.csv"
 INDEX_DIR = DATA_DIR / "pushkin_faiss_index"
-OUTPUT_PATH = DATA_DIR / "pushkin_answers.csv"
+OUTPUT_PATH = DATA_DIR / "m4rag_pushkin_solution.csv"
 
 BASE_URL = "https://api.vsellm.ru/"
 API_KEY = os.getenv("OPENAI_API_KEY")
@@ -93,7 +93,7 @@ def main():
 
     # Also save to submissions
     submissions_dir = Path(__file__).resolve().parent.parent / "submissions"
-    submissions_path = submissions_dir / "pushkin_answers.csv"
+    submissions_path = submissions_dir / "m4rag_pushkin_solution.csv"
     result.to_csv(submissions_path, index=False)
     print(f"Saved to {submissions_path}")
 

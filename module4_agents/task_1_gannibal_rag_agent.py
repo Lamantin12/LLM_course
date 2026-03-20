@@ -3,7 +3,7 @@ Task 4.2 Step 6 — RAG Agent over Wikipedia article about Abram Gannibal.
 
 Loads the Wikipedia page, builds a FAISS vector store, creates a retriever tool,
 and uses a ReAct agent to answer questions from the dataset.
-Output: step6_solution.csv with columns [question, answer], each answer ≤70 chars.
+Output: m4agents_step6_solution.csv with columns [question, answer], each answer ≤70 chars.
 """
 
 import os
@@ -27,7 +27,7 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 
 WIKI_URL = "https://ru.wikipedia.org/wiki/%D0%93%D0%B0%D0%BD%D0%BD%D0%B8%D0%B1%D0%B0%D0%BB,_%D0%90%D0%B1%D1%80%D0%B0%D0%BC_%D0%9F%D0%B5%D1%82%D1%80%D0%BE%D0%B2%D0%B8%D1%87"
 QUESTIONS_URL = "https://stepik.org/media/attachments/lesson/1107866/gannibal.csv"
-OUTPUT_PATH = Path(__file__).resolve().parent.parent / "submissions" / "step6_solution.csv"
+OUTPUT_PATH = Path(__file__).resolve().parent.parent / "submissions" / "m4agents_step6_solution.csv"
 FAISS_PATH = Path(__file__).resolve().parent / "gannibal_faiss_index"
 
 

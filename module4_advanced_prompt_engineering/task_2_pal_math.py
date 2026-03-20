@@ -52,8 +52,8 @@ def main():
         answers.append(answer)
 
     df["answer"] = answers
-    df[["task", "answer"]].to_csv("5.6.7_solution.csv", index=False)
-    print("Results saved to 5.6.7_solution.csv")
+    df[["task", "answer"]].to_csv("m4adv_3_7_solution.csv", index=False)
+    print("Results saved to m4adv_3_7_solution.csv")
 
 
 if __name__ == "__main__":
