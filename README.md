@@ -37,6 +37,9 @@ print(response.content)
 | **2** | Prompt Engineering | `langchain.prompts`, `langchain.output_parsers` | `M2_1_*`, `M2_2_*` |
 | **3** | LangChain Framework | `langchain.chains`, `langchain.agents`, `langchain.memory` | `M3_*` |
 | **4** | Retrieval-Augmented Generation (RAG) | `langchain.document_loaders`, `langchain.vectorstores` | `M4_RAG.ipynb` |
+| **4** | Advanced Prompt Engineering | `langchain_experimental` | `M4_Basic_Advansic_Prompting.ipynb` |
+| **4** | Agents | `langchain.agents`, `langserve` | `M4_Agents.ipynb` |
+| **5** | Open-Source Models (Zoo) | `transformers`, `langchain_community`, `torch`, `bitsandbytes` | `M5_Zoo.ipynb` |
 
 ## Directory Structure
 
@@ -70,6 +73,27 @@ LLM/
 │   ├── custom_text_splitter.py
 │   ├── pushkin_rag.py
 │   └── pushkin_questions_data/
+│
+├── module4_advanced_prompt_engineering/
+│   ├── README.md
+│   ├── M4_Basic_Advansic_Prompting.ipynb
+│   ├── задачи_4_3_.ipynb
+│   ├── advanced_prompting.py
+│   ├── task_1_sudoku_tot.py
+│   └── task_2_pal_math.py
+│
+├── module4_agents/
+│   ├── README.md
+│   ├── M4_Agents.ipynb
+│   ├── 4_2_Решение_задач.ipynb
+│   ├── langserve_app.py
+│   ├── task_1_gannibal_rag_agent.py
+│   ├── task_2_dvdrental_sql_agent.py
+│   ├── task_3_polygraph_agent.py
+│   └── gannibal_faiss_index/
+│
+├── module5_fine_tuning/
+│   └── M5_Zoo.ipynb                             # Open-source model zoo: base/chat/instruct/code models, quantization, MoE, multimodal
 │
 └── submissions/
     └── (CSV results from exercises)

@@ -172,12 +172,11 @@ add_routes(app, agent_executor, path="/rag_agent")
 | File | Description |
 |------|-------------|
 | `M4_Agents.ipynb` | Lecture notebook — all agent types with interactive examples |
-| `tool_calling_agent.py` | Tool Calling Agent + Agent with Memory |
-| `react_agent.py` | ReAct Agent + Structured Chat Agent |
-| `self_ask_agent.py` | Self-Ask with Search Agent |
-| `rag_agent.py` | Agent + RAG (web page retrieval) |
-| `sql_agent.py` | SQL Agent + Super Agent (hierarchical) |
+| `4_2_Решение_задач.ipynb` | Exercise notebook |
 | `langserve_app.py` | LangServe FastAPI deployment server |
+| `task_1_gannibal_rag_agent.py` | **Exercise Task 1** — Gannibal RAG agent with FAISS vector store |
+| `task_2_dvdrental_sql_agent.py` | **Exercise Task 2** — SQL Agent on PostgreSQL DVD rental database |
+| `task_3_polygraph_agent.py` | **Exercise Task 3** — True/False fact-checker agent |
 
 ## Setup
 
@@ -195,8 +194,9 @@ add_routes(app, agent_executor, path="/rag_agent")
 
 3. Run any script:
    ```bash
-   python module4_agents/tool_calling_agent.py
-   python module4_agents/sql_agent.py
+   python module4_agents/task_1_gannibal_rag_agent.py
+   python module4_agents/task_2_dvdrental_sql_agent.py
+   python module4_agents/task_3_polygraph_agent.py
    ```
 
 ## Key Concepts
