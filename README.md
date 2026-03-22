@@ -39,7 +39,7 @@ print(response.content)
 | **4** | [module4_rag/](module4_rag/README.md) | Retrieval-Augmented Generation | `langchain.document_loaders`, `langchain.vectorstores` | `M4_RAG.ipynb` |
 | **4** | [module4_advanced_prompt_engineering/](module4_advanced_prompt_engineering/README.md) | Advanced Prompt Engineering | `langchain_experimental` | `M4_Advanced_Prompting.ipynb` |
 | **4** | [module4_agents/](module4_agents/README.md) | Agents | `langchain.agents`, `langserve` | `M4_Agents.ipynb` |
-| **5** | [module5_fine_tuning/](module5_fine_tuning/README.md) | Open-Source Models (Zoo) | `transformers`, `langchain_community`, `torch`, `bitsandbytes` | `M5_Zoo.ipynb` |
+| **5** | [module5_fine_tuning/](module5_fine_tuning/README.md) | Open-Source Models & Fine-tuning | `transformers`, `langchain_community`, `torch`, `bitsandbytes`, `unsloth`, `trl`, `peft` | `M5_Zoo.ipynb`, `M5_2_Dataset_prepare.ipynb`, `M5_2_FineTuning.ipynb` |
 
 ## Directory Structure
 
@@ -97,7 +97,9 @@ LLM/
 │
 ├── module5_fine_tuning/
 │   ├── README.md
-│   └── M5_Zoo.ipynb
+│   ├── M5_Zoo.ipynb
+│   ├── M5_2_Dataset_prepare.ipynb
+│   └── M5_2_FineTuning.ipynb
 │
 └── submissions/
     └── (CSV results from exercises, named m[module-id]_[section]_[exercise]_solution.csv)

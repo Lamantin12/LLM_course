@@ -14,6 +14,60 @@ Go beyond basic prompting: self-consistency voting, knowledge-augmented generati
 
 ---
 
+## Lecture Notes
+
+### M4_Advanced_Prompting.ipynb
+
+**Self-Consistency** — Runs the same prompt multiple times at high temperature, then takes the majority answer via voting.
+`Counter(answers).most_common(1)[0][0]` aggregates N independent model calls into a single voted answer, reducing variance from a single stochastic sample. The critical limitation shown in the notebook: if the model is consistently wrong (all 5 runs return the same wrong answer), majority voting cannot fix it — the technique only helps when the model is right most of the time.
+```python
+from collections import Counter
+answers = [chain.invoke({"question": q}) for _ in range(5)]
+majority = Counter(answers).most_common(1)[0][0]
+```
+
+**Generated Knowledge** — Multi-step pipeline where the model first generates context, then uses that context for a richer final answer.
+`chain1` generates N topic-related questions; `chain2.batch()` answers them in parallel using domain-expert personas; `chain3` synthesises the answers into a final artifact. The result is noticeably richer than a single-shot prompt because the context window now contains model-generated knowledge rather than just the user's brief query.
+```python
+questions = questions_chain.invoke({"topic": "black holes"})
+answers = expert_chain.batch([{"q": q} for q in questions])
+article = synthesis_chain.invoke({"knowledge": "\n".join(answers), "topic": "black holes"})
+```
+
+**Tree of Thoughts** — Explores reasoning as a tree with branching and backtracking, validated at each intermediate step.
+`MyChecker(ToTChecker)` implements `evaluate()` returning `VALID_INTERMEDIATE`, `VALID_FINAL`, or `INVALID`; `ToTChain(checker=checker, k=50, c=3)` runs BFS. The non-obvious implementation requirement: the checker parses the model's plain-text output with regex — the `VALID_INTERMEDIATE` pattern must match exactly what the LLM produces.
+```python
+from langchain_experimental.tot.checker import ToTChecker
+from langchain_experimental.tot.base import ToTChain
+
+class MyChecker(ToTChecker):
+    def evaluate(self, problem_description, current_state, next_move):
+        # parse model output; return VALID_FINAL / VALID_INTERMEDIATE / INVALID
+        ...
+
+chain = ToTChain(llm=llm, checker=MyChecker(), k=50, c=3, verbose=True)
+result = chain.run(problem_description="Game of 24: 2 3 4 5")
+```
+
+**PAL** — Program-Aided Language models — the LLM generates Python code that an interpreter executes instead of doing arithmetic in text.
+`PALChain.from_math_prompt(llm, allow_dangerous_code=True)` prompts the model to write a `solution()` function, then executes it and returns the numeric result. This eliminates token-level arithmetic errors (e.g. vegetable-counting mistakes); `allow_dangerous_code=True` is required — only use in sandboxed/trusted environments.
+```python
+from langchain_experimental.pal_chain import PALChain
+pal_chain = PALChain.from_math_prompt(llm, allow_dangerous_code=True, verbose=True)
+result = pal_chain.invoke("If there are 3 carrots and 5 potatoes, how many vegetables?")
+print(result["result"])   # "8"
+```
+
+**Emotional Prompting** — Adding emotional stakes to a prompt measurably improves response quality and length.
+Appending phrases like `"This is very important to my career"` or a tip offer raises the model's implicit priority for the request, producing longer and more thorough responses. The notebook benchmarks multiple phrasings and finds diminishing returns above ~$20 in tip offers — real effect, but not a substitute for good prompt structure.
+```python
+base_prompt = "Summarise this document: {text}"
+emotional_prompt = "Summarise this document: {text}\n\nThis is critical for my PhD thesis defence."
+# Emotional version produces ~30% longer, more detailed summaries
+```
+
+---
+
 ## Files
 
 | File | Description |

@@ -17,6 +17,64 @@ Extend LLMs with external knowledge without fine-tuning: load documents, chunk t
 
 ---
 
+## Lecture Notes
+
+### M4_RAG.ipynb
+
+**Document loaders** — LangChain adapters that read files or web pages and emit a list of `Document` objects.
+`PyPDFLoader(path).load()` returns one `Document` per PDF page; each has `.page_content` (text) and `.metadata` (source, page number). The metadata is preserved through the entire pipeline and surfaced in retrieval results to show provenance.
+```python
+from langchain_community.document_loaders import PyPDFLoader
+loader = PyPDFLoader("document.pdf")
+docs = loader.load()   # list of Document objects
+print(docs[0].metadata)   # {'source': 'document.pdf', 'page': 0}
+```
+
+**TextSplitter** — Divides long documents into overlapping chunks that fit within the model's context window.
+`RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)` splits on `\n\n`, then `\n`, then space, trying to preserve paragraph boundaries. The `chunk_overlap` parameter repeats the last `n` characters in the next chunk to avoid cutting a sentence mid-thought; higher overlap means more chunks and more retrieval calls.
+```python
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+chunks = splitter.split_documents(docs)
+print(len(chunks), "chunks from", len(docs), "pages")
+```
+
+**Embeddings + FAISS** — Converts text chunks to dense vectors and builds a searchable in-memory index.
+`OpenAIEmbeddings()` encodes each chunk as a float vector; `FAISS.from_documents(chunks, embeddings)` builds the index in one call. Persist with `index.save_local("path")` and reload with `FAISS.load_local(...)` — this avoids re-embedding on each run, which is the expensive step.
+```python
+from utils import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+embeddings = OpenAIEmbeddings()
+index = FAISS.from_documents(chunks, embeddings)
+index.save_local("my_index")
+# Reload later
+index = FAISS.load_local("my_index", embeddings, allow_dangerous_deserialization=True)
+```
+
+**LCEL RAG pipeline** — Composes retriever and LLM into a single runnable using the `|` pipe operator.
+`{"context": retriever, "question": RunnablePassthrough()} | prompt | llm | StrOutputParser()` passes the query to the retriever and the original text to the prompt simultaneously. `RunnablePassthrough()` is the key primitive — it threads the unmodified question alongside the retrieved context so both appear in the prompt template.
+```python
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+rag_chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | prompt | llm | StrOutputParser()
+)
+answer = rag_chain.invoke("What happened in chapter 3?")
+```
+
+**MMR** — Maximal Marginal Relevance — retrieval strategy that balances similarity to the query with diversity among results.
+`vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20})` fetches `fetch_k` candidates by cosine similarity, then greedily selects `k` that are most different from each other. The non-obvious reason to use MMR: plain top-k can return five nearly identical chunks from the same paragraph — MMR spreads coverage across the document.
+```python
+retriever = index.as_retriever(
+    search_type="mmr",
+    search_kwargs={"k": 5, "fetch_k": 20}
+)
+docs = retriever.get_relevant_documents("Who is Pugachev?")
+```
+
+---
+
 ## Files
 
 | File | Description |
