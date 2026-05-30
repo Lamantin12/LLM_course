@@ -18,11 +18,17 @@ A hands-on course for building applications with Large Language Models using Lan
 ## Quick Start
 
 ```python
-from utils import ChatOpenAI
+import os
+from langchain_openai import ChatOpenAI
+
+BASE_URL = "https://api.vsellm.ru/"
+API_KEY = os.getenv("OPENAI_API_KEY")
 
 llm = ChatOpenAI(
-    temperature=0.7,
-    course_api_key="your-course-key"
+    api_key=API_KEY,
+    model="gpt-4o-mini",
+    base_url=BASE_URL,
+    temperature=0.0,
 )
 
 response = llm.invoke("What is the capital of France?")
@@ -48,7 +54,7 @@ LLM/
 ├── README.md
 ├── CLAUDE.md
 ├── requirements.txt
-├── utils.py                                     # Course API wrappers
+├── utils.py                                     # Legacy course API wrappers (kept for older notebooks); new code uses langchain_openai.ChatOpenAI directly with base_url=https://api.vsellm.ru/
 │
 ├── module1_setup/
 │   ├── README.md
